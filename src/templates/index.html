@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summarizer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem 3rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="text"] {
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 300px;
+            font-size: 1rem;
+        }
+        input[type="submit"] {
+            padding: 0.7rem 2rem;
+            border: none;
+            border-radius: 5px;
+            background: #ff7e5f;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        input[type="submit"]:hover {
+            background: #feb47b;
+        }
+        .response {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            color: #333;
+            font-size: 1rem;
+            text-align: left;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .loading {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #ff7e5f;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Video Summarizer</h1>
+        <form id="summarizer-form">
+            <input type="text" id="video-id" name="id" placeholder="Enter the ID of the YouTube video">
+            <input type="submit" value="Submit">
+        </form>
+        <div id="loading" class="loading">Waiting for response...</div>
+        <div id="response-container" class="response" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('summarizer-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const videoId = document.getElementById('video-id').value;
+            const responseContainer = document.getElementById('response-container');
+            const loading = document.getElementById('loading');
+            
+            loading.style.display = 'block';
+            responseContainer.style.display = 'none';
+            
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: videoId
+            })
+            .then(response => response.text())
+            .then(data => {
+                loading.style.display = 'none';
+                responseContainer.style.display = 'block';
+                responseContainer.innerHTML = `<strong>Summary:</strong> <p>${data}</p>`;
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                responseContainer.style.display = 'block';
+                responseContainer.innerHTML = `<strong>Error:</strong> <p>There was an error processing your request.</p>`;
+            });
+        });
+    </script>
+</body>
+</html>

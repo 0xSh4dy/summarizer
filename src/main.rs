@@ -1,19 +1,28 @@
-use actix_web::{get, web, App, HttpServer, Responder};
-use agent::youtube_agent::summarize_video;
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use agent::youtube_bot::summarize_video;
 mod agent;
 
-#[get("/{video_id}")]
-async fn summarize(video_id: web::Path<String>) -> impl Responder {
-    let res = summarize_video(&video_id).await;
-    res
+async fn index() -> impl Responder {
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(include_str!("templates/index.html"))
 }
 
-#[tokio::main]
+async fn summarizer(id: String) -> impl Responder {
+    let summary = summarize_video(&id).await;
+    HttpResponse::Ok().body(summary)
+}
+
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting web server at port 4004");
-    HttpServer::new(|| App::new().service(summarize))
-        .bind(("0.0.0.0", 4004))
-        .unwrap()
-        .run()
-        .await
+    let port = 4004;
+    println!("Starting web server at port {}", port);
+    HttpServer::new(|| {
+        App::new()
+            .route("/", web::get().to(index))
+            .route("/", web::post().to(summarizer))
+    })
+    .bind(("0.0.0.0", port))?
+    .run()
+    .await
 }

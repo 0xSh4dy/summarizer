@@ -2,7 +2,9 @@ use openai_api_rust::{chat::{ChatApi, ChatBody}, Auth, Error, Message, OpenAI, R
 use serde::Deserialize;
 use youtube_captions::{format::Format, language_tags::LanguageTag, DigestScraper};
 
-use super::json_agent:: SUMMARY_TO_JSON_PROMPT;
+use crate::agent::json_bot::extract_codeblock;
+
+use super::json_bot:: SUMMARY_TO_JSON_PROMPT;
 
 static SYSTEM_PROMPT: &str = r#"You are an agent dedicated to summarising video transcripts.
 You will receive a transcript and answer with main talking points of the video first,
@@ -65,28 +67,32 @@ async fn get_transcript(video: &str) -> Result<(String), Box<dyn std::error::Err
 }
 
 async fn summarize_video_internal(video: &str) -> Result<String, openai_api_rust::Error> {
-    let base_url = "https://api.pawan.krd/pai-001-light/v1/";
+    let base_url = std::env::var("BASE_URL").unwrap();
     let auth = Auth::from_env().unwrap();
-    let client = OpenAI::new(auth, base_url);
-    
+    let client = OpenAI::new(auth, &base_url);
+    let model = std::env::var("MODEL").unwrap();
     let transcript = get_transcript(video).await;
 
     if transcript.is_err(){
         return Err(openai_api_rust::Error::RequestError(String::from("failed to get transcript")));
     }    
-    let mut summarize_agent = Agent {
+    let mut summarize_bot = Agent {
         system_message: SYSTEM_PROMPT.to_string(),
-        model: "gpt-4".to_string(),
+        model: model.clone(),
         client:client.clone(),
     };
-    let mut summary_to_json_agent = Agent {
+    let mut summary_to_json_bot = Agent {
         system_message: SUMMARY_TO_JSON_PROMPT.to_string(),
-        model: "gpt-4".to_string(),
+        model: model,
         client:client,
     };
 
-    println!("Running summarizer agent");
-    let result = summarize_agent.prompt(transcript.unwrap()).await?;
+    println!("Running summarizer");
+    let mut result = summarize_bot.prompt(transcript.unwrap()).await?;
+
+    println!("Running jsonifier");
+    
+    result = extract_codeblock(&summary_to_json_bot.prompt(result).await?);
     Ok(result)
 }
 

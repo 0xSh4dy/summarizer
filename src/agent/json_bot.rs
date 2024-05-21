@@ -4,11 +4,11 @@ The format is as follows:
 
 {
 
-    “summary”: “Whole video summary goes here”,
-   “talking_points”: [
+    "summary": "Whole video summary goes here",
+   "talking_points”: [
 {
-   “title” : “Title of the point”,
-   “description: “Talking point summary”
+   "title" : "Title of the point",
+   "description: "Talking point summary"
  },
 ...
 ]
@@ -17,7 +17,7 @@ The format is as follows:
 Rules:
 - Follow the specified JSON format closely
 - Wrap the JSON in a code block
-- Skip prose, return only the JSON
+- Skip prose, return only the valid JSON
 "#;
 
 pub fn extract_codeblock(text: &str) -> String {
@@ -38,5 +38,5 @@ pub fn extract_codeblock(text: &str) -> String {
         }
     }
 
-    extracted_lines.join("\n")
+    extracted_lines.join("\n").replace("```","")
 }
